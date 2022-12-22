@@ -3381,7 +3381,36 @@ at::Tensor XLANativeFunctions::_trilinear(
   return at::functionalization::functionalize_aten_op<ATEN_OP(
       _trilinear)>::call(i1, i2, i3, expand1, expand2, expand3, sumdim,
                          unroll_dim);
-=======
+}
+
+at::Tensor XLANativeFunctions::linalg_pinv(
+    const at::Tensor& self, const c10::optional<at::Tensor>& atol,
+    const c10::optional<at::Tensor>& rtol, bool hermitian) {
+  return at::functionalization::functionalize_aten_op<ATEN_OP2(
+      linalg_pinv, atol_rtol_tensor)>::call(self, atol, rtol, hermitian);
+}
+
+at::Tensor XLANativeFunctions::masked_fill(const at::Tensor& self,
+                                           const at::Tensor& mask,
+                                           const at::Tensor& value) {
+  return at::functionalization::functionalize_aten_op<ATEN_OP2(
+      masked_fill, Tensor)>::call(self, mask, value);
+}
+
+at::Tensor XLANativeFunctions::masked_fill(const at::Tensor& self,
+                                           const at::Tensor& mask,
+                                           const at::Scalar& value) {
+  return at::functionalization::functionalize_aten_op<ATEN_OP2(
+      masked_fill, Scalar)>::call(self, mask, value);
+}
+
+at::Tensor XLANativeFunctions::mvlgamma(const at::Tensor& self, int64_t p) {
+  return at::functionalization::functionalize_aten_op<ATEN_OP(mvlgamma)>::call(
+      self, p);
+}
+
+at::Tensor XLANativeFunctions::diagonal_backward_symint(
+    const at::Tensor& grad_output, at::SymIntArrayRef input_sizes,
     int64_t offset, int64_t dim1, int64_t dim2) {
   return at::functionalization::functionalize_aten_op_symint<ATEN_OP(
       diagonal_backward)>::call(grad_output, input_sizes, offset, dim1, dim2);
