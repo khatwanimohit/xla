@@ -43,6 +43,16 @@ cc_library(
     alwayslink = True,
 )
 
+cc_test(
+    name = "async_task_test",
+    srcs = ["async_task_test.cc"],
+    deps = [
+        ":async_task",
+        "@com_google_googletest//:gtest_main",
+    ],
+    alwayslink = True,
+)
+
 cc_library(
     name = "computation_client",
     srcs = [
@@ -146,6 +156,15 @@ cc_library(
     name = "cache",
     hdrs = ["cache.h"],
     alwayslink = True,
+)
+
+cc_test(
+    name = "cache_test",
+    srcs = ["cache_test.cc"],
+    deps = [
+        ":cache",
+        "@com_google_googletest//:gtest_main",
+    ],
 )
 
 cc_library(
