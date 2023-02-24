@@ -3351,6 +3351,7 @@ at::Tensor XLANativeFunctions::pixel_unshuffle(const at::Tensor& self,
                                                int64_t downscale_factor) {
   return at::functionalization::functionalize_aten_op<ATEN_OP(
       pixel_unshuffle)>::call(self, downscale_factor);
+}
 
 at::Tensor XLANativeFunctions::reshape_symint(const at::Tensor& self,
                                               c10::SymIntArrayRef shape) {
@@ -3358,6 +3359,7 @@ at::Tensor XLANativeFunctions::reshape_symint(const at::Tensor& self,
       reshape)>::call(self, shape);
 }
 
+at::Tensor XLANativeFunctions::select_backward_symint(
     const at::Tensor& grad_output, c10::SymIntArrayRef input_sizes, int64_t dim,
     c10::SymInt index) {
   return at::functionalization::functionalize_aten_op_symint<ATEN_OP(
@@ -3395,20 +3397,6 @@ at::Tensor XLANativeFunctions::linalg_pinv(
     const c10::optional<at::Tensor>& rtol, bool hermitian) {
   return at::functionalization::functionalize_aten_op<ATEN_OP2(
       linalg_pinv, atol_rtol_tensor)>::call(self, atol, rtol, hermitian);
-}
-
-at::Tensor XLANativeFunctions::masked_fill(const at::Tensor& self,
-                                           const at::Tensor& mask,
-                                           const at::Tensor& value) {
-  return at::functionalization::functionalize_aten_op<ATEN_OP2(
-      masked_fill, Tensor)>::call(self, mask, value);
-}
-
-at::Tensor XLANativeFunctions::masked_fill(const at::Tensor& self,
-                                           const at::Tensor& mask,
-                                           const at::Scalar& value) {
-  return at::functionalization::functionalize_aten_op<ATEN_OP2(
-      masked_fill, Scalar)>::call(self, mask, value);
 }
 
 at::Tensor XLANativeFunctions::mvlgamma(const at::Tensor& self, int64_t p) {
