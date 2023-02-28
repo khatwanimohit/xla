@@ -12,6 +12,16 @@ namespace torch_xla {
 
 class ShardingUtil {
  public:
+  // This maps to `torch_xla.experimental.xla_sharding.ShardingType` enum type.
+  enum ShardingType {
+    REPLICATED = 0,
+    MAXIMAL = 1,
+    TUPLE = 2,
+    TILED = 3,
+    MANUAL = 4,
+    PARTIAL = 5
+  };
+
   // Annotates HLO instructions in the lowered computation and returns true if
   // the computation needs to be compiled with SPMD partitioning. For this call
   // to be effective, this needs to be called after the lowering and before
@@ -22,10 +32,12 @@ class ShardingUtil {
   static bool EqualShardingSpecs(const XLATensor::ShardingSpec& a,
                                  const XLATensor::ShardingSpec& b);
 
-  // Creates an xla::OpSharding from `tile_assignment` (ndarray).
+  // Creates an xla::OpSharding. `tile_assignmnent` is required for TILED
+  // `sharding_type` and `replication_groups` for `PARTIAL`.
   static xla::OpSharding CreateOpSharding(const py::list& tile_assignment,
-                                          bool replicated = false,
-                                          bool manual = false);
+                                          const py::list& group_assignment,
+                                          const py::list& replication_groups,
+                                          ShardingType sharding_type);
 
   // This is a debugging tool for partitioned HLO generation with different
   // options and sharding propagation.
