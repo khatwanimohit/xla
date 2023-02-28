@@ -14,6 +14,7 @@ import torch
 import torchvision
 import torch_xla.core.xla_model as xm
 import torch_xla.debug.metrics as met
+from torch.autograd import gradcheck
 
 # It enables us to run python implementations of CompositeAutogradImplicit ops.
 # CompositeAutogradImplicit means we don't have an explicit backward formula for an op instead an op is composed of a bunch of ops that do have backward formulas and combines this formulas is equivalent to differentiating the op explicitly.
@@ -128,7 +129,7 @@ class TestDynamicShapeModels(unittest.TestCase):
     print('Test passed.')
 
   def test_roialign_forward(self):
-    device = 'cpu'
+    device = xla_dev
     aligned = True
     # contiguous = True
     dtype = torch.float64
@@ -199,7 +200,27 @@ class TestDynamicShapeModels(unittest.TestCase):
     torch.testing.assert_close(y_expected.to(y), y, rtol=tol, atol=tol)
     print('test passes')
     
-  
+  def test_roialign_backward(self):
+    seed = 1
+    device = 'cpu'
+    contiguous = True
+    pool_size = 2
+    dtype = torch.float64
+    x = torch.rand(1, 2 * (pool_size**2), 5, 5, dtype=dtype, device=device, requires_grad=True)
+    rois = torch.tensor(
+       [[0, 0, 0, 4, 4], [0, 0, 2, 3, 4], [0, 2, 2, 4, 4]], dtype=dtype, device=device  # format is (xyxy)
+    )
+
+    def func(z):
+      return torchvision.ops.RoIAlign((pool_size, pool_size), spatial_scale=1, sampling_ratio=-1, aligned=False)(z, rois)
+    def script_func(x):
+      scripted = torch.jit.script(torchvision.ops.roi_align)
+      return scripted(x, rois, pool_size)
+    
+    gradcheck(func, (x,))
+    gradcheck(script_func, (x,))
+
+     
 
 
   def create_dynamic_test_data(self,
