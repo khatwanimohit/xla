@@ -957,7 +957,7 @@ XLAGraphExecutor::ScheduleSyncTensorsGraph(
                     *async->cached_computation->computation
                          ->client_computation(),
                     device_arguments, devices, execute_options),
-                sharding_specs);
+                sharding_specs, /*replicated_output=*/false);
         results = WrapXlaData(outputs);
         TF_VLOG(3) << "Executing IR graph hash "
                    << torch::lazy::HashToString(hash)
