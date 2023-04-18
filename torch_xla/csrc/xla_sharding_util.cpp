@@ -18,6 +18,7 @@
 #include "torch_xla/csrc/device.h"
 #include "torch_xla/csrc/tensor.h"
 #include "torch_xla/csrc/tensor_util.h"
+#include "tensorflow/tsl/profiler/lib/traceme.h"
 
 namespace torch_xla {
 namespace {
@@ -73,6 +74,9 @@ xla::OpSharding ShardingUtil::CreateOpSharding(const py::list& tile_assignment,
   XLA_CHECK(!(replicated && manual))
       << "Invalid arguments: replicated=" << replicated
       << ", manual=" << manual;
+
+  tsl::profiler::TraceMe activity("ShardingUtil::CreateOpSharding",
+                            tsl::profiler::TraceMeLevel::kInfo);
 
   xla::OpSharding sharding;
   if (replicated) {
@@ -183,6 +187,8 @@ xla::HloModuleProto ShardingUtil::SpmdPartitioningPass(
 // arbitrarily set by the caller.
 static std::unordered_map<int, int> build_index_map(
     const std::vector<std::string>& devices) {
+  tsl::profiler::TraceMe activity("ShardingUtil::BuildIndexMap",
+                            tsl::profiler::TraceMeLevel::kInfo);
   std::unordered_map<int, int> device_index;
   for (int i = 0; i < devices.size(); ++i) {
     int global_ordinal = ParseDeviceString(devices[i]).ordinal();
@@ -195,6 +201,8 @@ std::vector<std::vector<xla::ComputationClient::DataPtr>>
 ShardingUtil::InputHandler(
     std::vector<xla::ComputationClient::DataPtr> arguments,
     std::vector<std::string> devices) {
+  tsl::profiler::TraceMe activity("ShardingUtil::InputHandler",
+                            tsl::profiler::TraceMeLevel::kInfo);
   std::vector<std::vector<xla::ComputationClient::DataPtr>> arguments_by_device(
       devices.size(),
       std::vector<xla::ComputationClient::DataPtr>(arguments.size()));
@@ -232,6 +240,8 @@ std::vector<xla::ComputationClient::DataPtr> ShardingUtil::OutputHandler(
     std::vector<std::vector<xla::ComputationClient::DataPtr>> sharded_results,
     std::vector<XLATensor::ShardingSpecPtr> sharding_specs,
     bool replicated_output) {
+  tsl::profiler::TraceMe activity("ShardingUtil::OutputHandler",
+                            tsl::profiler::TraceMeLevel::kInfo);
   std::vector<xla::ComputationClient::DataPtr> outputs;
   outputs.reserve(sharding_specs.size());
   for (int i = 0; i < sharding_specs.size(); ++i) {
@@ -273,6 +283,8 @@ std::vector<xla::ComputationClient::DataPtr> ShardingUtil::OutputHandler(
 std::vector<at::Tensor> ShardingUtil::ShardTensor(
     const at::Tensor& tensor, const xla::OpSharding sharding,
     const std::vector<std::string>& devices, bool padded) {
+  tsl::profiler::TraceMe activity("ShardingUtil::ShardTensor",
+                            tsl::profiler::TraceMeLevel::kInfo);
   TF_LOG(INFO) << "ShardTensor with sharding type(" << sharding.type() << ")..."
                << std::endl;
   auto device_index = build_index_map(devices);

@@ -1517,6 +1517,8 @@ void InitXlaModuleBindings(py::module m) {
                                  const py::list& tile_assignment,
                                  bool replicated = false, bool manual = false) {
     TORCH_LAZY_COUNTER("XlaMarkSharding", 1);
+    tsl::profiler::TraceMe activity("xla_mark_sharding",
+                            tsl::profiler::TraceMeLevel::kInfo);
     XLATensorPtr xtensor = bridge::GetXlaTensor(input);
     xla::OpSharding sharding =
         ShardingUtil::CreateOpSharding(tile_assignment, replicated, manual);
@@ -1529,11 +1531,15 @@ void InitXlaModuleBindings(py::module m) {
     if (xla::sys_util::GetEnvBool("XLA_USE_SPMD", false) &&
         xtensor->CurrentTensorData().has_value()) {
       TORCH_LAZY_COUNTER("VirtualDeviceUsage", 1);
+      tsl::profiler::TraceMe activity("xla_mark_sharding::virtual_device",
+                            tsl::profiler::TraceMeLevel::kInfo);
       // When virtual device is enabled for SPMD, we defer the initial data
       // transfer to the device and retain the original data on the host, until
       // the sharded data transfer.
       cpu_tensor = xtensor->CurrentTensorData().value();
     } else {
+      tsl::profiler::TraceMe activity("xla_mark_sharding::no_virtual_device",
+                            tsl::profiler::TraceMeLevel::kInfo);
       // A new input tensor is not expected to be sharded. But sometimes, the
       // same input is used sharding annotation, in which case we can skip if
       // it's the same sharding; however, if it's the same input with a

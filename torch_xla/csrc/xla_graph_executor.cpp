@@ -935,10 +935,14 @@ XLAGraphExecutor::ScheduleSyncTensorsGraph(
       coll, std::move(parameters_data), std::move(tensors_data),
       std::move(cached_computation));
   auto syncfn = [async, hash = coll->hash, sharding_specs = sharding_specs]() {
+    tsl::profiler::TraceMe activity("XLAGraphExecutor::syncfn",
+                            tsl::profiler::TraceMeLevel::kInfo);
     try {
       std::vector<torch::lazy::BackendDataPtr> results;
       // Execute replicated if the compiled computation is partitioned.
       if (async->cached_computation->is_sharded) {
+        tsl::profiler::TraceMe activity("syncfn-sharded",
+                            tsl::profiler::TraceMeLevel::kInfo);
         std::vector<std::string> devices =
             xla::ComputationClient::Get()->GetLocalDevices();
         std::vector<std::vector<xla::ComputationClient::DataPtr>>
@@ -974,6 +978,8 @@ XLAGraphExecutor::ScheduleSyncTensorsGraph(
                    << torch::lazy::HashToString(hash) << " on device "
                    << async->device << " done!";
       }
+      tsl::profiler::TraceMe activity("assign-results",
+                            tsl::profiler::TraceMeLevel::kInfo);
       for (size_t i = 0; i < results.size(); ++i) {
         if (async->tensors_data[i] != nullptr) {
           async->tensors_data[i]->Assign(*results[i]);
